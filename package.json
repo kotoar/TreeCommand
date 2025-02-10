@@ -4,7 +4,19 @@
   "scripts": {
     "build": "webpack",
     "start": "electron dist/main.mjs",
-    "dev": "npx tsc & npm run build & npm run start"
+    "dev": "npx tsc & npm run build & npm run start",
+    "export": "electron-builder"
+  },
+  "build": {
+    "appId": "com.kotoar.commandtree",
+    "productName": "Command Tree",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
+    }
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -20,6 +32,7 @@
   "devDependencies": {
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "electron-builder": "^25.1.8",
     "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^9.0.0",
     "typescript": "^5.0.0",

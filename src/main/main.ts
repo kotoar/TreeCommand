@@ -140,7 +140,7 @@ function openPreferenceWindow(): void {
     });
 
     preferencesWindow.loadFile(path.join(__distname, './index.html'), {hash: "#/preferences" });
-    preferencesWindow.webContents.openDevTools()
+    // preferencesWindow.webContents.openDevTools()
 
     preferencesWindow.on('closed', () => {
         preferencesWindow = null;
@@ -185,4 +185,8 @@ ipcMain.on("update-encoded-tree", (event, rawValue: string) => {
 
 ipcMain.on("get-focus-window", (event) => {
     event.returnValue = UnifiedPref.focusWindow;
+});
+
+ipcMain.on("close-app", () => {
+   app.quit()
 });

@@ -9,6 +9,7 @@ export interface ElectronAPI {
     loadEncodedTree: () => [string, EncodedNode[]];
     updateEncodedTree: (rawValue: string) => boolean;
     getFocusWindow: () => FocusedWindow | null;
+    quitApp: () => void;
 }
 
 declare global {

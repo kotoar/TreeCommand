@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     loadEncodedTree: () => ipcRenderer.sendSync("load-encoded-tree"),
     updateEncodedTree: (rawValue: string) => ipcRenderer.sendSync("update-encoded-tree", rawValue),
     getFocusWindow: () => ipcRenderer.sendSync('get-focus-window'),
+    quitApp: () => ipcRenderer.send('close-app'),
 });

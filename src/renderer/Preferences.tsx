@@ -12,7 +12,7 @@ import {
 import {CommandTree} from "./CommandTree";
 
 type PreferencesAlert = "updated" | "error" | null
-type TabSelection = "theme" | "config"
+type TabSelection = "exit" | "config"
 
 export const Preferences: React.FC = () => {
     const [config, setConfig] = useState<string>("")
@@ -61,7 +61,10 @@ export const Preferences: React.FC = () => {
                 <ListItemText primary='Config' onClick={() => setSelection("config")} />
             </ListItemButton>
             <ListItemButton>
-                <ListItemText primary='Theme' onClick={() => setSelection("theme")} />
+                <ListItemText primary='Exit App' onClick={() => {
+                    setSelection('exit')
+                    window.electronAPI.quitApp()
+                }} />
             </ListItemButton>
         </List>
         <Box margin='10px' flexGrow={1}>
@@ -85,7 +88,6 @@ export const Preferences: React.FC = () => {
                         { alert == "error" ? <Alert severity='error'>Error</Alert> : null }
                     </Stack>
                 </Stack> : null}
-            {selection == 'theme' ? null : null}
         </Box>
     </Stack>
 }
