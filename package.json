@@ -1,4 +1,8 @@
 {
+  "name": "command-tree",
+  "version": "1.0.0",
+  "description": "Command Tree - a tree-style quick launchpad",
+  "author": "kotoar",
   "type": "module",
   "main": "dist/main.mjs",
   "scripts": {
@@ -11,11 +15,11 @@
     "appId": "com.kotoar.commandtree",
     "productName": "Command Tree",
     "directories": {
-      "output": "dist"
+      "output": "export"
     },
     "win": {
       "target": ["nsis", "portable"],
-      "icon": "build/icon.ico"
+      "icon": "build/icon-win.ico"
     }
   },
   "dependencies": {
@@ -23,7 +27,6 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.2",
     "@mui/material": "^6.4.2",
-    "electron": "^28.0.0",
     "electron-store": "^10.0.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
@@ -35,6 +38,7 @@
     "electron-builder": "^25.1.8",
     "html-webpack-plugin": "^5.5.0",
     "ts-loader": "^9.0.0",
+    "electron": "^28.0.0",
     "typescript": "^5.0.0",
     "webpack": "^5.0.0",
     "webpack-cli": "^5.0.0"
