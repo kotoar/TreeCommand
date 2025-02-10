@@ -12,30 +12,34 @@ interface EncodedNode {
 }
 
 export class CommandTree {
-    static instance: CommandTree;
-    static tree(overrideTree: CommandTree | undefined = undefined) {
-        if (overrideTree) {
-            CommandTree.instance = overrideTree;
-        }
+    static instance: CommandTree | null = null;
+    static tree() {
         if(!CommandTree.instance) {
             CommandTree.instance = new CommandTree();
         }
         return CommandTree.instance;
     }
+    static loadFromStore() {
+        CommandTree.instance = CommandTree.initializeFromPreference(window.electronAPI.loadEncodedTree())
+    }
+
+    static initializeFromPreference(encoded: [string, EncodedNode[]]): CommandTree {
+        const [rawString, nodes] = encoded
+        return new CommandTree(rawString, nodes.map(n => this.decode(n)))
+    }
+
+    rawValue: string = ""
 
     rootList: CommandNode[]
     pointer: CommandNode | undefined
 
-    constructor(rootList: CommandNode[] = []) {
+    constructor(rawString: string = "", rootList: CommandNode[] = []) {
+        this.rawValue = rawString;
         this.rootList = rootList
         this.pointer = undefined
     }
 
-    detectKeyList() {
-        return new Map(this.presentList().map(node => [node.key, node]))
-    }
-
-    presentList() {
+    private list(): CommandNode[] {
         if(this.pointer === undefined) {
             return this.rootList
         } else if(this.pointer instanceof ExpandNode) {
@@ -44,10 +48,12 @@ export class CommandTree {
         return []
     }
 
-    static listener: Set<()=>void> = new Set()
+    detectKeyList() {
+        return new Map(this.list().map(node => [node.key, node]))
+    }
 
-    static initializeFromPreference(encoded: EncodedNode[]): CommandTree {
-        return new CommandTree(encoded.map(n => this.decode(n)))
+    presentList(): string[] {
+        return this.list().map(node => node.present())
     }
 
     private static decode(node: EncodedNode, parent: CommandNode | undefined = undefined): CommandNode {
@@ -94,5 +100,4 @@ export class CommandTree {
             throw new Error("Unknown Node Type");
         }
     }
-
 }

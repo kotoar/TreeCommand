@@ -10,16 +10,20 @@ export interface EncodedNode {
     children: EncodedNode[]
 }
 
+const version: number = 1
+
 export interface Preferences {
-    commandTree: EncodedNode[]
+    version: number
+    tree: string
 }
 
 const store = new Store<Preferences>({
     defaults: {
-        commandTree: [
+        version: version,
+        tree: JSON.stringify([
             {
                 key: "a",
-                description: "Open Chrome 1",
+                description: "Open Chrome",
                 actionType: "open",
                 actionParameters: ["C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"],
                 children: [],
@@ -39,17 +43,24 @@ const store = new Store<Preferences>({
                     },
                 ],
             },
-        ],
+        ]),
     },
 });
 
-export function getEncodedTree(): EncodedNode[] {
+export function getEncodedTree(): [string, EncodedNode[]] {
     // @ts-ignore
-    return store.get("commandTree", []);
+    if(store.get("version", 1) < version) {
+        // migrate
+    }
+    // @ts-ignore
+    const json = store.get("tree", "");
+    const object: EncodedNode[] = JSON.parse(json);
+    return [JSON.stringify(object, null, 2), object];
 }
 
-export function setCommandTree(newTree: EncodedNode[]) {
+export function setEncodedTree(newTree: EncodedNode[]) {
+    const json = JSON.stringify(newTree);
     // @ts-ignore
-    store.set("commandTree", newTree);
+    store.set("tree", json);
 }
 

@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {CommandNode} from "./CommandNode";
 import {Box, Button, Container, MenuItem, Select, Stack, TextField, Typography} from "@mui/material";
 import {BackNode, ExpandNode, OpenAppNode} from "./CommandAction";
@@ -12,37 +12,41 @@ import {CommandTree} from "./CommandTree";
 
 export const Settings: React.FC = () => {
     const editing = new EditingNodes()
-    const [tree, setTree] = React.useState<CommandTree>(CommandTree.tree());
-    CommandTree.listener.add(() => {
-        setTree(CommandTree.tree())
-    })
-    console.log("settings: ", tree)
+    const [list, setList] = React.useState<CommandNode[]>(CommandTree.tree().rootList);
 
     return <Stack direction='column'>
         <Typography>Settings</Typography>
         {
-            tree.rootList.map(n =>
-                <SettingItem node={n} indent={0} editing={editing} />)
+            list.map((n, index) =>
+                <SettingItem key={`${n.description}${index}`}
+                             list={list}
+                             index={index}
+                             indent={0}
+                             editing={editing} />)
         }
     </Stack>
 }
 
 function SettingItem(params: {
-    node: CommandNode,
+    list: CommandNode[],
+    index: number,
     indent: number,
     editing: EditingNodes
 }) {
+    const node = params.list[params.index]
+    const [type, setType] = useState<ActionType>(node.type);
+    const [titleDescription, setTitleDescription] = useState<string>(node.description);
+
+    const [selection, setSelection] = useState<ActionType>(node.type);
+    const [key, setKey] = useState<string>(node.key);
+    const [description, setDescription] = useState<string>(node.description);
     const [expand, setExpand] = useState<boolean>(false);
     const [showDetails, setShowDetails] = useState<boolean>(false);
-    const [key, setKey] = useState<string>(params.node.key);
-    const [description, setDescription] = useState<string>(params.node.description);
-    const [selection, setSelection] = useState<ActionType>(params.node.type);
-    const expandable = params.node instanceof ExpandNode;
-    const [path, setPath] = useState<string>((params.node instanceof OpenAppNode) ? params.node.appPath : '');
-
+    const expandable = node instanceof ExpandNode;
+    const [path, setPath] = useState<string>((node instanceof OpenAppNode) ? node.appPath : '');
 
     function SettingsPrefix(): JSX.Element {
-        switch(params.node.type) {
+        switch(type) {
             case "open":
                 return <Stack direction='row'>
                     <LaunchIcon />
@@ -112,10 +116,14 @@ function SettingItem(params: {
     }
 
     function childViews(): JSX.Element[] {
-        const node = params.node
         if(expandable && expand && node instanceof ExpandNode) {
             return node.children.map(
-                n => <SettingItem node={n} indent={params.indent + 1} editing={params.editing} />
+                (n, index) =>
+                    <SettingItem key={`${n.description}${index}`}
+                                 list={node.children}
+                                 index={index}
+                                 indent={params.indent + 1}
+                                 editing={params.editing} />
             )
         }
         return []
@@ -124,14 +132,16 @@ function SettingItem(params: {
     function updateNode() {
         switch(selection) {
             case 'open':
-                params.node = new OpenAppNode(key, description, path)
+                params.list[params.index] = new OpenAppNode(key, description, path)
                 break;
             case 'back':
-                params.node = new BackNode(key, path)
+                params.list[params.index] = new BackNode(key, path)
                 break;
             case 'expand':
-                params.node = new ExpandNode(key, path)
+                params.list[params.index] = new ExpandNode(key, path)
         }
+        setType(selection)
+        setTitleDescription(description)
         // PreferenceStore.preferences.update()
     }
 
@@ -141,7 +151,7 @@ function SettingItem(params: {
             <Stack direction='column' border='1px solid black' borderRadius='3px'>
                 <Stack direction='row' onClick={toggleExpand}>
                     <SettingsPrefix />
-                    <Typography>{params.node.present()}</Typography>
+                    <Typography>{titleDescription}</Typography>
                     <EditIcon style={{marginLeft: 'auto'}} onClick={() => toggleEdit()} />
                 </Stack>
                 {   !showDetails ? <></> :

@@ -26,7 +26,8 @@ export class BackNode extends CommandNode {
         } else {
             tree.pointer = undefined
         }
-        CommandTree.listener.forEach((listener: () => void) => listener())
+        const channel = new BroadcastChannel('list-sync');
+        channel.postMessage(CommandTree.tree().presentList());
     }
 }
 
@@ -47,6 +48,7 @@ export class ExpandNode extends CommandNode {
     override perform(): void {
         const tree = CommandTree.tree()
         tree.pointer = this
-        CommandTree.listener.forEach((listener: () => void) => listener())
+        const channel = new BroadcastChannel('list-sync');
+        channel.postMessage(CommandTree.tree().presentList());
     }
 }
