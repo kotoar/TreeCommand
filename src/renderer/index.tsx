@@ -1,21 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import MainView from './view/MainView';
 import { HashRouter, Route, Routes } from "react-router-dom";
-import {Settings} from "./Settings";
-import {CommandTree} from "./CommandTree";
-import {Preferences} from "./Preferences";
+import {PreferencesView} from "./view/Preferences";
+import {keyEventsRegister} from "./model/keyEventsRegister";
+import {Provider} from "../components/ui/provider";
+import {commandTreeVM} from "./viewmodel/CommandTreeVM";
 
 const rootElement = document.getElementById('root');
+
+commandTreeVM.loadAll().then(() => {
+    console.log("Command tree loaded successfully");
+}).catch(error => {
+    console.error("Failed to load command tree:", error);
+});
+
 if(rootElement) {
-    CommandTree.loadFromStore()
     const root = ReactDOM.createRoot(rootElement);
     root.render(
         <HashRouter>
             <Routes>
-                <Route path="/" element={<App />} />
-                {/*<Route path="/settings" element={<Settings />} />*/}
-                <Route path="/preferences" element={<Preferences />} />
+                <Route path="/" element={<Provider><MainView /></Provider>} />
+                <Route path="/preferences" element={<Provider><PreferencesView /></Provider>} />
             </Routes>
         </HashRouter>,
     );
@@ -26,21 +32,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener('keydown', (event: KeyboardEvent) => {
-    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return; // Skip handling keys inside input elements
-    }
-    if(window.electronAPI.getFocusWindow() !== "Main") {
-        return;
-    }
-    if(event.key === 'Escape') {
-        window.electronAPI.hideWindow();
-    }
-    if(event.ctrlKey && event.key === ",") {
-        window.electronAPI.openPreferences();
-    }
+    if (event.repeat) return;
 
-    const tree = CommandTree.tree()
-    if(tree.detectKeyList().has(event.key)) {
-        tree.detectKeyList().get(event.key)?.perform()
-    }
-})
+    console.log(`Key pressed: ${event.key}, Ctrl: ${event.ctrlKey}`);
+    console.log(`Focused window: ${window.electronAPI.getFocusWindow()}`);
+
+    keyEventsRegister.forEach((keyEvent) => {
+        if (
+          keyEvent.key === event.key &&
+          (!keyEvent.ctrlKey || (keyEvent.ctrlKey && event.ctrlKey)) &&
+          keyEvent.enabled()
+        ) {
+            keyEvent.handlers();
+        }
+    });
+
+    commandTreeVM.items().filter((item) => event.key === item.key).forEach((item => {
+        console.log("Item key pressed:", item.key, "Description:", item.description);
+        switch (item.actionType) {
+            case 'expand':
+                commandTreeVM.selectedRootId = item.id; break;
+            case 'back':
+                commandTreeVM.selectedRootId = commandTreeVM.item(commandTreeVM.selectedRootId)?.parentId || "root"; break;
+            case 'open':
+                window.electronAPI.triggerAction('open', item.actionParameters); break;
+            default:
+                console.warn(`Unknown action type: ${item.actionType}`);
+        }
+    }));
+});

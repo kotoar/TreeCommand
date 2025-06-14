@@ -1,23 +1,19 @@
 import { app, BrowserWindow, ipcMain, screen, globalShortcut } from 'electron';
 import path from "path";
-import { spawn } from "child_process";
-
 import { fileURLToPath } from "url";
-import {EncodedNode, getEncodedTree, setEncodedTree} from "./Store";
-import {UnifiedPref} from "./UnifiedPref";
+import {eventsRegister} from "./events-handler";
+import {commandsRegister} from "./commands-handlers";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const __distname = path.join(__dirname, '../../dist');
+export const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(__filename);
+export const __distname = path.join(__dirname, '../../dist');
 
 let mainWindow: BrowserWindow | null;
-// let settingsWindow: BrowserWindow | null;
-let preferencesWindow: BrowserWindow | null;
 
 app.whenReady().then(() => {
     mainWindow = new BrowserWindow({
         width: 400, // Initial width
-        height: 600, // Initial height
+        height: 400, // Initial height
         x: 50,
         y: 50,
         title: "Main",
@@ -27,6 +23,7 @@ app.whenReady().then(() => {
         resizable: true, // ✅ Allow resizing
         autoHideMenuBar: true,
         show: false, // ✅ Start hidden
+        icon: path.join(__dirname, '../../build/icon-win.ico'),
         webPreferences: {
             preload: path.join(__distname, './preload.js'),
             nodeIntegration: false,
@@ -34,7 +31,9 @@ app.whenReady().then(() => {
         },
     });
 
-    mainWindow.loadFile(path.join(__distname, './index.html'));
+    mainWindow.loadFile(path.join(__distname, './index.html')).then(r => {
+        adjustWindowSize()
+    });
     // mainWindow.webContents.openDevTools()
 
     screen.on('display-metrics-changed', () => adjustWindowSize());
@@ -42,17 +41,17 @@ app.whenReady().then(() => {
     screen.on('display-removed', () => adjustWindowSize());
     mainWindow.on('resize', () => adjustWindowSize());
 
-    mainWindow.on('focus', () => {
-        UnifiedPref.focusWindow = "Main";
-    })
-
-    mainWindow.on('blur', () => {
-        UnifiedPref.focusWindow = null;
-    })
+    ipcMain.on('get-focus-window', (event) => {
+        const focusedWindow = BrowserWindow.getFocusedWindow();
+        if (focusedWindow) {
+            event.returnValue = focusedWindow.getTitle();
+        }
+        event.returnValue = 'None';
+    });
 
     globalShortcut.register('Control+Shift+Space', () => {
         if (mainWindow?.isVisible()) {
-            mainWindow.hide();
+            mainWindow?.hide();
         } else {
             showWindow();
         }
@@ -60,6 +59,23 @@ app.whenReady().then(() => {
 
     ipcMain.on('hide-window', () => {
         mainWindow?.hide();
+    });
+    ipcMain.on('resize-main-window', (event, width: number, height: number) => {
+        if (mainWindow) {
+            mainWindow.setSize(Math.round(width), Math.round(height), true);
+        }
+    });
+
+    eventsRegister.forEach(mc => {
+        ipcMain.on(mc.channel, (event, ...args) => {
+            mc.handler(event, ...args);
+        });
+    });
+
+    commandsRegister.forEach(mc => {
+        ipcMain.handle(mc.channel, async (event, ...args) => {
+            return mc.handler(event, ...args);
+        });
     });
 });
 
@@ -75,16 +91,16 @@ app.on('activate', () => {
     }
 });
 
-async function adjustWindowSize() {
+function adjustWindowSize() {
     if (mainWindow) {
-        const margin = 50
-        mainWindow.setBounds({
-            x: margin,
-            y: margin,
-        });
+        const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+        const contentSize = mainWindow.getContentSize();
+        const newWidth = Math.min(contentSize[0], width);
+        const newHeight = Math.min(contentSize[1], height);
+        mainWindow.setSize(newWidth, newHeight);
     }
-
 }
+
 function showWindow(): void {
     if (mainWindow) {
         mainWindow.show();
@@ -92,101 +108,3 @@ function showWindow(): void {
         mainWindow.focus(); // Ensure window gets focus
     }
 }
-
-// function openSettingsWindow(): void {
-//     if (settingsWindow) {
-//         settingsWindow.focus();
-//         return;
-//     }
-//
-//     settingsWindow = new BrowserWindow({
-//         width: 800,
-//         height: 600,
-//         title: "Settings",
-//         resizable: false,
-//         autoHideMenuBar: true,
-//         webPreferences: {
-//             preload: path.join(__distname, './preload.js'),
-//             nodeIntegration: false,
-//             contextIsolation: true,
-//         },
-//     });
-//
-//     settingsWindow.loadFile(path.join(__distname, './index.html'), {hash: "#/settings" });
-//     settingsWindow.webContents.openDevTools()
-//
-//     settingsWindow.on('closed', () => {
-//         settingsWindow = null;
-//     });
-// }
-
-function openPreferenceWindow(): void {
-    if (preferencesWindow) {
-        preferencesWindow.focus();
-        return;
-    }
-
-    preferencesWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        title: "Settings",
-        resizable: false,
-        autoHideMenuBar: true,
-        webPreferences: {
-            preload: path.join(__distname, './preload.js'),
-            nodeIntegration: false,
-            contextIsolation: true,
-        },
-    });
-
-    preferencesWindow.loadFile(path.join(__distname, './index.html'), {hash: "#/preferences" });
-    // preferencesWindow.webContents.openDevTools()
-
-    preferencesWindow.on('closed', () => {
-        preferencesWindow = null;
-    });
-
-    preferencesWindow.on('focus', () => {
-        UnifiedPref.focusWindow = "Preferences";
-    })
-
-    preferencesWindow.on('blur', () => {
-        UnifiedPref.focusWindow = null;
-    })
-}
-
-// ✅ Open settings window when requested
-// ipcMain.on('open-settings', () => {
-//     openSettingsWindow();
-// });
-
-// ✅ Open settings window when requested
-ipcMain.on('open-preferences', () => {
-    openPreferenceWindow();
-});
-
-ipcMain.on('open-app', (event, appPath) => {
-    spawn(appPath, { detached: true, stdio: 'ignore' }).unref();
-});
-
-ipcMain.on("load-encoded-tree", (event) => {
-    event.returnValue = getEncodedTree(); // ✅ Send tree data to renderer
-});
-
-ipcMain.on("update-encoded-tree", (event, rawValue: string) => {
-    try {
-        const encoded = JSON.parse(rawValue);
-        setEncodedTree(encoded as EncodedNode[]);
-        event.returnValue = true;
-    } catch (e) {
-        event.returnValue = false;
-    }
-});
-
-ipcMain.on("get-focus-window", (event) => {
-    event.returnValue = UnifiedPref.focusWindow;
-});
-
-ipcMain.on("close-app", () => {
-   app.quit()
-});
