@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import {contextBridge, ipcRenderer, IpcRendererEvent} from 'electron';
 import {CommandNode} from "../shared/command-node";
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -11,12 +11,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
 });
 
 contextBridge.exposeInMainWorld('commandAPI', {
-    getAll: (): Promise<CommandNode[]> =>
-      ipcRenderer.invoke('commands.get-all'),
-    create: (data: Omit<CommandNode, 'id'>, parentId ?: string): Promise<string> =>
-      ipcRenderer.invoke('commandTree.create', data, parentId),
-    delete: (id: string, parentId ?: string): Promise<void> =>
+    select: (id: string): void =>
+      ipcRenderer.invoke('commands.select', id),
+    children: (id: string): CommandNode[] =>
+      ipcRenderer.invoke('commands.children', id),
+    create: (data: Omit<CommandNode, 'id'>, parentId: string): string =>
+      ipcRenderer.invoke('commands.create', data, parentId),
+    delete: (id: string, parentId: string): void =>
       ipcRenderer.invoke('commands.delete', id, parentId),
-    update: (node: CommandNode): Promise<void> =>
+    update: (node: CommandNode, parentId: string): void =>
       ipcRenderer.invoke('commands.update', node),
-})
+
+    updateCommandList: (callback: (event: IpcRendererEvent, list: CommandNode[]) => void) => {
+        ipcRenderer.on('command-list-update', callback);
+    }
+});
+
+contextBridge.exposeInMainWorld('preferencesAPI', {
+    getStartup: (): boolean => ipcRenderer.sendSync('preferences.get-startup'),
+    setStartup: (enabled: boolean): void => ipcRenderer.send('preferences.set-startup', enabled),
+});

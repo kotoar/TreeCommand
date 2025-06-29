@@ -5,15 +5,13 @@ import { HashRouter, Route, Routes } from "react-router-dom";
 import {PreferencesView} from "./view/Preferences";
 import {keyEventsRegister} from "./model/keyEventsRegister";
 import {Provider} from "../components/ui/provider";
-import {commandTreeVM} from "./viewmodel/CommandTreeVM";
+import {mainViewModel} from "./viewmodel/mainViewModel";
+import {addEventListeners} from "./model/event-listener";
+import {snapshot} from "valtio/vanilla";
+import {CommandNode} from "../shared/command-node";
+import {useSnapshot} from "valtio/react";
 
 const rootElement = document.getElementById('root');
-
-commandTreeVM.loadAll().then(() => {
-    console.log("Command tree loaded successfully");
-}).catch(error => {
-    console.error("Failed to load command tree:", error);
-});
 
 if(rootElement) {
     const root = ReactDOM.createRoot(rootElement);
@@ -29,7 +27,10 @@ if(rootElement) {
 
 document.addEventListener("DOMContentLoaded", () => {
     document.body.style.overflow = "hidden"; // ✅ Force no scroll
+    document.body.style.background = "transparent"; // ✅ Ensure transparent body
 });
+
+addEventListeners();
 
 document.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.repeat) return;
@@ -47,15 +48,24 @@ document.addEventListener('keydown', (event: KeyboardEvent) => {
         }
     });
 
-    commandTreeVM.items().filter((item) => event.key === item.key).forEach((item => {
-        console.log("Item key pressed:", item.key, "Description:", item.description);
+    snapshot(mainViewModel).items.filter((item) => event.key === item.key).forEach((item => {
+        console.log("Item key pressed:", item.key, "Description:", item.description, "type:", item.actionType);
         switch (item.actionType) {
             case 'expand':
-                commandTreeVM.selectedRootId = item.id; break;
+                mainViewModel.stack.push(item.id);
+                console.log('push successful, current stack:', mainViewModel.stack);
+                window.commandAPI.select(item.id).then(() => {});
+                console.log('[event handler] Expand action triggered for item:', item.id);
+                break;
             case 'back':
-                commandTreeVM.selectedRootId = commandTreeVM.item(commandTreeVM.selectedRootId)?.parentId || "root"; break;
+                mainViewModel.stack.pop();
+                window.commandAPI.select(mainViewModel.stack[mainViewModel.stack.length - 1]).then(() => {});
+                console.log('[event handler] Back action triggered, current stack:', mainViewModel.stack);
+                break;
             case 'open':
-                window.electronAPI.triggerAction('open', item.actionParameters); break;
+                window.electronAPI.triggerAction('open', item.actionParameters);
+                console.log('[event handler] Open action triggered for item:', item.id, 'with parameters:', item.actionParameters);
+                break;
             default:
                 console.warn(`Unknown action type: ${item.actionType}`);
         }

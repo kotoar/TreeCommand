@@ -1,14 +1,16 @@
 import { app, BrowserWindow, ipcMain, screen, globalShortcut } from 'electron';
 import path from "path";
 import { fileURLToPath } from "url";
-import {eventsRegister} from "./events-handler";
-import {commandsRegister} from "./commands-handlers";
+import {eventsRegister} from "./events-handlers";
+import {modelInit, nodeMap, selectedCommandList} from "./model";
+import {commandsRegister, preferencesRegister} from './commands-handlers';
+import {sendUpdateMainList} from "./event-sender";
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 export const __distname = path.join(__dirname, '../../dist');
 
-let mainWindow: BrowserWindow | null;
+export let mainWindow: BrowserWindow | null;
 
 app.whenReady().then(() => {
     mainWindow = new BrowserWindow({
@@ -31,38 +33,23 @@ app.whenReady().then(() => {
         },
     });
 
+    modelInit();
     mainWindow.loadFile(path.join(__distname, './index.html')).then(r => {
-        adjustWindowSize()
+        adjustWindowSize();
+        sendUpdateMainList(selectedCommandList());
     });
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools({ mode: "detach" });
 
     screen.on('display-metrics-changed', () => adjustWindowSize());
     screen.on('display-added', () => adjustWindowSize());
     screen.on('display-removed', () => adjustWindowSize());
     mainWindow.on('resize', () => adjustWindowSize());
 
-    ipcMain.on('get-focus-window', (event) => {
-        const focusedWindow = BrowserWindow.getFocusedWindow();
-        if (focusedWindow) {
-            event.returnValue = focusedWindow.getTitle();
-        }
-        event.returnValue = 'None';
-    });
-
     globalShortcut.register('Control+Shift+Space', () => {
         if (mainWindow?.isVisible()) {
             mainWindow?.hide();
         } else {
             showWindow();
-        }
-    });
-
-    ipcMain.on('hide-window', () => {
-        mainWindow?.hide();
-    });
-    ipcMain.on('resize-main-window', (event, width: number, height: number) => {
-        if (mainWindow) {
-            mainWindow.setSize(Math.round(width), Math.round(height), true);
         }
     });
 
@@ -77,6 +64,12 @@ app.whenReady().then(() => {
             return mc.handler(event, ...args);
         });
     });
+
+    preferencesRegister.forEach(mc => {
+        ipcMain.on(mc.channel, (event, ...args) => {
+            mc.handler(event, ...args);
+        });
+    })
 });
 
 app.on('window-all-closed', () => {

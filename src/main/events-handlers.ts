@@ -5,13 +5,14 @@ import {__distname} from "./main";
 
 export type MessageConsumer = {
   channel: string;
-  handler: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => void;
+  handler: (event: Electron.IpcMainEvent, ...args: any[]) => void;
 }
 
 export const eventsRegister: MessageConsumer[] = [
   {
     channel: 'trigger-action',
     handler: (event, action: string, parameters: string[]) => {
+      console.log(`[action handler] action: ${action}, parameters: ${parameters}`);
       actionHandler(action, parameters);
     }
   },
@@ -19,6 +20,35 @@ export const eventsRegister: MessageConsumer[] = [
     channel: 'open-preferences',
     handler: (event) => {
       openPreferenceWindow();
+    }
+  },
+  {
+    channel: 'hide-window',
+    handler: (event) => {
+      const focusedWindow = BrowserWindow.getFocusedWindow();
+      if (focusedWindow) {
+        focusedWindow.hide();
+      }
+    }
+  },
+  {
+    channel: 'get-focus-window',
+    handler: (event) => {
+      const focusedWindow = BrowserWindow.getFocusedWindow();
+      if (focusedWindow) {
+        event.returnValue = focusedWindow.getTitle();
+      } else {
+        event.returnValue = 'None';
+      }
+    }
+  },
+  {
+    channel: 'resize-main-window',
+    handler: (event, width: number, height: number) => {
+      const mainWindow = BrowserWindow.getAllWindows()[0];
+      if (mainWindow) {
+        mainWindow.setSize(Math.round(width), Math.round(height), true);
+      }
     }
   },
   {
@@ -31,6 +61,7 @@ export const eventsRegister: MessageConsumer[] = [
 
 function actionHandler(action: string, parameters: string[]): void {
   if (action === 'open') {
+    return;
     const filePath = parameters[0];
     if (filePath) {
       spawn('explorer', [filePath], { detached: true });
@@ -50,7 +81,7 @@ function openPreferenceWindow(): void {
     width: 800,
     height: 600,
     title: "Preferences",
-    resizable: false,
+    resizable: true,
     autoHideMenuBar: true,
     icon: path.join(__dirname, '../../build/icon-win.ico'),
     webPreferences: {
@@ -60,8 +91,8 @@ function openPreferenceWindow(): void {
     },
   });
 
-  preferencesWindow.loadFile(path.join(__distname, './index.html'), {hash: "#/preferences" });
-  preferencesWindow.webContents.openDevTools()
+  preferencesWindow.loadFile(path.join(__distname, './index.html'), {hash: "#/preferences" }).then(() => {});
+  preferencesWindow.webContents.openDevTools({ mode: "detach" });
 
   preferencesWindow.on('closed', () => {
     preferencesWindow = null;

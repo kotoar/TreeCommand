@@ -118,7 +118,6 @@ export class CommandNodeStore {
       description: row.description,
       actionType: row.action_type as ActionType,
       actionParameters: JSON.parse(row.action_parameters),
-      parent: row.id === 'root' ? '' : row.id, // Root node has no parent
       children: JSON.parse(row.children),
     }));
   }

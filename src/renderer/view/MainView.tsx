@@ -1,11 +1,10 @@
 import React, {useEffect, useRef} from 'react';
-import {Box, Text, VStack} from "@chakra-ui/react";
-import {commandTreeVM} from "../viewmodel/CommandTreeVM";
+import {Box, For, Show, Text, VStack} from "@chakra-ui/react";
+import {mainViewModel} from "../viewmodel/mainViewModel";
 import {useSnapshot} from "valtio/react";
 
 const MainView: React.FC = () => {
-    const viewModel = useSnapshot(commandTreeVM);
-    const items = viewModel.items();
+    const viewModel = useSnapshot(mainViewModel);
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -13,18 +12,28 @@ const MainView: React.FC = () => {
             const rect = ref.current.getBoundingClientRect();
             window.electronAPI.resizeMainWindow(rect.width, rect.height);
         }
-    }, [items.length]);
+    }, [viewModel.items.length]);
 
-    return <Box ref={ref}>
-        <VStack align="start" p={4} backgroundColor="blackAlpha.500" opacity={0.5}>
-            {items.map(item => (
-              <Text key={item.id}>[{item.key}] {item.description}</Text>
-            ))}
-            {
-                items.length === 0 && <Text key="empty">[Ctrl + ,] Go to preferences to add commands</Text>
-            }
-        </VStack>
-    </Box>
+    return (
+        <Box
+            ref={ref}
+            backgroundColor="rgba(0,0,0,0.5)" // Half-transparent black
+            position="fixed"
+            inset={0}
+        >
+            <VStack align="start" p={4}>
+                <For each={viewModel.items}>
+                    { (item) => (
+                      <Text key={item.id}>[{item.key}] {item.description}</Text>
+                    )}
+                </For>
+                <Show when={viewModel.items.length === 0}>
+                    <Text>Empty</Text>
+                    <Text key="empty">[Ctrl + ,] Go to preferences to add commands</Text>
+                </Show>
+            </VStack>
+        </Box>
+    );
 };
 
 export default MainView;
