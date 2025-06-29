@@ -1,7 +1,7 @@
 import {app, BrowserWindow} from "electron";
 import path from "path";
 import { spawn } from "child_process";
-import {__distname} from "./main";
+import {__distname, mainWindow} from "./main";
 
 export type MessageConsumer = {
   channel: string;
@@ -45,10 +45,7 @@ export const eventsRegister: MessageConsumer[] = [
   {
     channel: 'resize-main-window',
     handler: (event, width: number, height: number) => {
-      const mainWindow = BrowserWindow.getAllWindows()[0];
-      if (mainWindow) {
-        mainWindow.setSize(Math.round(width), Math.round(height), true);
-      }
+      mainWindow?.setSize(Math.round(width), Math.round(height), true);
     }
   },
   {

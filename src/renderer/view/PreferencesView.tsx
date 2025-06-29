@@ -1,5 +1,5 @@
 import React from "react";
-import {Text, VStack, HStack, Box, Button, Show} from "@chakra-ui/react";
+import {Text, VStack, HStack, Box, Button, Show, Switch} from "@chakra-ui/react";
 import {useSnapshot} from "valtio/react";
 import {useColorModeValue} from "../../components/ui/color-mode";
 import {PreferencesViewModel, preferencesViewModel} from "../viewmodel/preferencesViewModel";
@@ -25,30 +25,39 @@ export const PreferencesView: React.FC = () => {
             Commands
           </Button>
         </VStack>
-        <Box flexGrow={1} alignItems='flex-start'>
-          <Show when={viewModel.tab === 'preferences'}>
-            <PreferencesListView />
-          </Show>
-          <Show when={viewModel.tab === 'commands'}>
-            <CommandTreeView />
-          </Show>
+        <Box overflow='auto'>
+          <VStack flexGrow={1} alignItems='flex-start'>
+            <Show when={viewModel.tab === 'preferences'}>
+              <PreferencesListView />
+            </Show>
+            <Show when={viewModel.tab === 'commands'}>
+              <CommandTreeView />
+            </Show>
+          </VStack>
         </Box>
       </HStack>
     );
 }
 
 const PreferencesListView: React.FC = () => {
+  const viewModel = useSnapshot(preferencesViewModel);
   return (
     <VStack align="start" gap={4}>
       <Text fontSize="xl" fontWeight="bold">Preferences</Text>
-      <HStack>
-        <Text>Start with application</Text>
-        <input
-          type="checkbox"
-          checked={preferencesViewModel.startup}
-          onChange={(e) => preferencesViewModel.startup = e.target.checked}
-        />
-      </HStack>
+      <Switch.Root
+        checked={viewModel.startup}
+        onCheckedChange={(e: any) => {
+          preferencesViewModel.startup = e.target.checked;
+        }}
+      >
+        <Switch.HiddenInput />
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
+        <Switch.Label>
+          Start when system starts
+        </Switch.Label>
+      </Switch.Root>
     </VStack>
   );
 }

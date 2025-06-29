@@ -11,16 +11,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
 });
 
 contextBridge.exposeInMainWorld('commandAPI', {
-    select: (id: string): void =>
+    select: (id: string): Promise<void> =>
       ipcRenderer.invoke('commands.select', id),
-    children: (id: string): CommandNode[] =>
+    children: (id: string): Promise<CommandNode[]> =>
       ipcRenderer.invoke('commands.children', id),
-    create: (data: Omit<CommandNode, 'id'>, parentId: string): string =>
+    create: (data: Omit<CommandNode, 'id'>, parentId: string): Promise<string> =>
       ipcRenderer.invoke('commands.create', data, parentId),
-    delete: (id: string, parentId: string): void =>
+    delete: (id: string, parentId: string): Promise<void> =>
       ipcRenderer.invoke('commands.delete', id, parentId),
-    update: (node: CommandNode, parentId: string): void =>
-      ipcRenderer.invoke('commands.update', node),
+    update: (node: CommandNode, parentId: string): Promise<void> =>
+      ipcRenderer.invoke('commands.update', node, parentId),
 
     updateCommandList: (callback: (event: IpcRendererEvent, list: CommandNode[]) => void) => {
         ipcRenderer.on('command-list-update', callback);

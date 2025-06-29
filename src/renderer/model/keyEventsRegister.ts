@@ -1,3 +1,5 @@
+import {mainViewModel} from "../viewmodel/mainViewModel";
+
 export type KeyEvent = {
   ctrlKey?: boolean;
   key: string;
@@ -11,7 +13,10 @@ export const keyEventsRegister: KeyEvent[] = [
     enabled: () => window.electronAPI.getFocusWindow() === "Main",
     handlers: () => {
       console.log("Event: Open preferences");
-      window.electronAPI.hideWindow()
+      window.commandAPI.select('root').then(() => {
+        window.electronAPI.hideWindow();
+        mainViewModel.stack = ['root'];
+      });
     }
   },
   {

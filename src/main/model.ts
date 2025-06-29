@@ -23,7 +23,7 @@ export function modelInit() {
 	nodes.forEach(node => {
 		nodeMap.set(node.id, node);
 	});
-	console.log('[Model] Command nodes loaded:', nodeMap);
+	console.log('[Model] Command nodes loaded:', nodes.length);
 }
 
 interface MainModel {

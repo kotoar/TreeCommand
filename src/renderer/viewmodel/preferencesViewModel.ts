@@ -4,7 +4,7 @@ import {CommandNode} from "../../shared/command-node";
 export interface PreferencesViewModel {
 	startup: boolean;
 	tab: 'preferences' | 'commands';
-	getChildren(id: string): CommandNode[];
+	getChildren(id: string): Promise<CommandNode[]>;
 }
 
 export const preferencesViewModel = proxy<PreferencesViewModel>({
@@ -15,7 +15,7 @@ export const preferencesViewModel = proxy<PreferencesViewModel>({
 		window.preferencesAPI.setStartup(value);
 	},
 	tab: 'preferences',
-	getChildren(id: string): CommandNode[] {
+	getChildren(id: string): Promise<CommandNode[]> {
 		return window.commandAPI.children(id);
 	}
 });

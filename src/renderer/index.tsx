@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import MainView from './view/MainView';
 import { HashRouter, Route, Routes } from "react-router-dom";
-import {PreferencesView} from "./view/Preferences";
+import {PreferencesView} from "./view/PreferencesView";
 import {keyEventsRegister} from "./model/keyEventsRegister";
 import {Provider} from "../components/ui/provider";
 import {mainViewModel} from "./viewmodel/mainViewModel";

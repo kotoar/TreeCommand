@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, screen, globalShortcut } from 'electron';
 import path from "path";
 import { fileURLToPath } from "url";
 import {eventsRegister} from "./events-handlers";
-import {modelInit, nodeMap, selectedCommandList} from "./model";
+import {modelInit, selectedCommandList} from "./model";
 import {commandsRegister, preferencesRegister} from './commands-handlers';
 import {sendUpdateMainList} from "./event-sender";
 
@@ -34,7 +34,7 @@ app.whenReady().then(() => {
     });
 
     modelInit();
-    mainWindow.loadFile(path.join(__distname, './index.html')).then(r => {
+    mainWindow.loadFile(path.join(__distname, './index.html')).then(() => {
         adjustWindowSize();
         sendUpdateMainList(selectedCommandList());
     });
@@ -54,21 +54,15 @@ app.whenReady().then(() => {
     });
 
     eventsRegister.forEach(mc => {
-        ipcMain.on(mc.channel, (event, ...args) => {
-            mc.handler(event, ...args);
-        });
+        ipcMain.on(mc.channel, mc.handler);
     });
 
     commandsRegister.forEach(mc => {
-        ipcMain.handle(mc.channel, async (event, ...args) => {
-            return mc.handler(event, ...args);
-        });
+        ipcMain.handle(mc.channel, mc.handler);
     });
 
     preferencesRegister.forEach(mc => {
-        ipcMain.on(mc.channel, (event, ...args) => {
-            mc.handler(event, ...args);
-        });
+        ipcMain.on(mc.channel, mc.handler);
     })
 });
 
