@@ -1,8 +1,13 @@
 import React from "react";
-import {Text, VStack, HStack, Box, Button, Show, Switch} from "@chakra-ui/react";
+import {Text, VStack, HStack, Box, Button, Show, Switch, For} from "@chakra-ui/react";
 import {useSnapshot} from "valtio/react";
 import {useColorModeValue} from "../../components/ui/color-mode";
-import {PreferencesViewModel, preferencesViewModel} from "../viewmodel/preferencesViewModel";
+import {
+  PreferencesViewModel,
+  preferencesViewModel,
+  StartPositionOption,
+  startPositionOptions
+} from "../viewmodel/preferencesViewModel";
 import {CommandTreeView} from "./CommandTreeView";
 
 export const PreferencesView: React.FC = () => {
@@ -25,7 +30,7 @@ export const PreferencesView: React.FC = () => {
             Commands
           </Button>
         </VStack>
-        <Box overflow='auto'>
+        <Box overflow='auto' minH='100vh' w='100%' alignSelf='stretch'>
           <VStack flexGrow={1} alignItems='flex-start'>
             <Show when={viewModel.tab === 'preferences'}>
               <PreferencesListView />
@@ -45,9 +50,10 @@ const PreferencesListView: React.FC = () => {
     <VStack align="start" gap={4}>
       <Text fontSize="xl" fontWeight="bold">Preferences</Text>
       <Switch.Root
+        name="startup"
         checked={viewModel.startup}
-        onCheckedChange={(e: any) => {
-          preferencesViewModel.startup = e.target.checked;
+        onCheckedChange={(e: {checked: boolean}) => {
+          preferencesViewModel.startup = e.checked;
         }}
       >
         <Switch.HiddenInput />
@@ -58,6 +64,19 @@ const PreferencesListView: React.FC = () => {
           Start when system starts
         </Switch.Label>
       </Switch.Root>
+      <HStack gap={2}>
+        <For each={startPositionOptions}>
+          { (option: StartPositionOption) => (
+            <Button
+              key={option.value}
+              variant={viewModel.position === option.value ? "solid" : "outline"}
+              onClick={() => preferencesViewModel.position = option.value}
+            >
+              {option.description}
+            </Button>
+          )}
+        </For>
+      </HStack>
     </VStack>
   );
 }

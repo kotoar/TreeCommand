@@ -1,12 +1,15 @@
 import {CommandNodeStore} from "./database/database-accessor";
 import {CommandNode} from "../shared/command-node";
+import {PrefStore} from "./pref-store/pref-store";
+import {StartPosition} from "../shared/prefs";
 
 export const nodeMap = new Map<string, CommandNode>();
 export const mainModel: MainModel = {
 	selectedRootId: 'root',
 }
-export const preferencesList: PreferencesList = {
+export let preferencesList: PreferencesList = {
 	startup: true,
+	startPosition: 'leftTop',
 }
 
 export function selectedCommandList(): CommandNode[] {
@@ -24,12 +27,15 @@ export function modelInit() {
 		nodeMap.set(node.id, node);
 	});
 	console.log('[Model] Command nodes loaded:', nodes.length);
+	const pref = PrefStore.instance.load();
+	preferencesList = {...pref};
 }
 
 interface MainModel {
 	selectedRootId: string;
 }
 
-interface PreferencesList {
+export interface PreferencesList {
 	startup: boolean;
+	startPosition: StartPosition;
 }

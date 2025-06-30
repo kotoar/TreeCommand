@@ -58,7 +58,6 @@ export const eventsRegister: MessageConsumer[] = [
 
 function actionHandler(action: string, parameters: string[]): void {
   if (action === 'open') {
-    return;
     const filePath = parameters[0];
     if (filePath) {
       spawn('explorer', [filePath], { detached: true });

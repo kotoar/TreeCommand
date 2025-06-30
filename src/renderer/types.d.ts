@@ -22,6 +22,8 @@ export interface CommandAPI {
 export interface PreferencesAPI {
     getStartup: () => boolean;
     setStartup: (enabled: boolean) => void;
+    getPosition: () => StartPosition;
+    setPosition: (pos: StartPosition) => void;
 }
 
 declare global {

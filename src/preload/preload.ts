@@ -1,5 +1,6 @@
 import {contextBridge, ipcRenderer, IpcRendererEvent} from 'electron';
 import {CommandNode} from "../shared/command-node";
+import {StartPosition} from "../shared/prefs";
 
 contextBridge.exposeInMainWorld('electronAPI', {
     triggerAction: (action: string, parameters: string[]) => ipcRenderer.send('trigger-action', action, parameters),
@@ -30,4 +31,6 @@ contextBridge.exposeInMainWorld('commandAPI', {
 contextBridge.exposeInMainWorld('preferencesAPI', {
     getStartup: (): boolean => ipcRenderer.sendSync('preferences.get-startup'),
     setStartup: (enabled: boolean): void => ipcRenderer.send('preferences.set-startup', enabled),
+    getPosition: (): StartPosition => ipcRenderer.sendSync('preferences.get-position'),
+    setPosition: (pos: StartPosition): void => ipcRenderer.send('preferences.set-position', pos)
 });

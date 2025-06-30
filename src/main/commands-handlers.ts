@@ -4,6 +4,8 @@ import {CommandNodeStore} from "./database/database-accessor";
 import crypto from 'crypto';
 import {mainModel, nodeMap, preferencesList, selectedCommandList} from "./model";
 import {sendUpdateMainList} from "./event-sender";
+import {PrefStore} from "./pref-store/pref-store";
+import {StartPosition} from "../shared/prefs";
 
 interface AsyncMessageConsumer {
   channel: string;
@@ -76,7 +78,13 @@ export const commandsRegister: AsyncMessageConsumer[] = [
         throw new Error(`Parent command node with ID ${parentId} not found`);
       }
       parentNode.children = parentNode.children.filter(childId => childId !== id);
-      nodeMap.delete(id);
+      function deleteNodeRecursively(nodeId: string) {
+        const node = nodeMap.get(nodeId);
+        if (!node) return;
+        node.children?.forEach(childId => deleteNodeRecursively(childId));
+        nodeMap.delete(nodeId);
+      }
+      deleteNodeRecursively(id);
       if (parentId === mainModel.selectedRootId) {
         sendUpdateMainList(selectedCommandList())
       }
@@ -94,7 +102,25 @@ export const preferencesRegister: MessageConsumer[] = [
   {
     channel: 'preferences.set-startup',
     handler: (event, enabled: boolean) => {
-      preferencesList.startup = enabled;
+      if(preferencesList.startup !== enabled) {
+        preferencesList.startup = enabled;
+        PrefStore.instance.save(preferencesList);
+      }
+    }
+  },
+  {
+    channel: 'preferences.get-position',
+    handler: (event) => {
+      event.returnValue = preferencesList.startPosition;
+    }
+  },
+  {
+    channel: 'preferences.set-position',
+    handler: (event, pos: StartPosition) => {
+      if(preferencesList.startPosition !== pos) {
+        preferencesList.startPosition = pos;
+        PrefStore.instance.save(preferencesList);
+      }
     }
   }
 ]

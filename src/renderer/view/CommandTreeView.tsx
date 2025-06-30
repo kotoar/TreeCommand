@@ -73,26 +73,29 @@ const EditExpandableNode: React.FC<EditNodeParams> = ({node, parentId, updatePar
 	};
 
 	return (
-		<HStack mt={2} gap={2}>
-			<Input
-				size="sm"
-				placeholder="Key"
-				value={key}
-				maxLength={1}
-				onChange={e => setKey(e.target.value)}
-			/>
-			<Input
-				size="sm"
-				placeholder="Description"
-				value={description}
-				onChange={e => setDescription(e.target.value)}
-			/>
-			<Box flexGrow={1}></Box>
-			<Button size="sm" onClick={handleSave} disabled={!key.trim()}>
-				Save
-			</Button>
-			<Button size="sm" onClick={onDismiss}>Cancel</Button>
-		</HStack>
+		<VStack align='stretch'>
+			<Text>Expand</Text>
+			<HStack mt={2} gap={2}>
+				<Input
+					size="sm"
+					placeholder="Key"
+					value={key}
+					maxLength={1}
+					onChange={e => setKey(e.target.value)}
+				/>
+				<Input
+					size="sm"
+					placeholder="Description"
+					value={description}
+					onChange={e => setDescription(e.target.value)}
+				/>
+				<Box flexGrow={1}></Box>
+				<Button size="sm" onClick={handleSave} disabled={!key.trim()}>
+					Save
+				</Button>
+				<Button size="sm" onClick={onDismiss}>Cancel</Button>
+			</HStack>
+		</VStack>
 	);
 }
 
@@ -103,9 +106,10 @@ const EditOpenNode: React.FC<EditNodeParams> = ({ node, parentId, updateParent, 
 
 	const handleSave = async () => {
 		if (!key.trim()) { return;}
+		const adjustedPath = path.trim().replace(/^['"]|['"]$/g, '');
 		if (node) {
 			// Update existing node
-			window.commandAPI.update({...node, key, description, actionParameters: [path]}, parentId).then(() => {
+			window.commandAPI.update({...node, key, description, actionParameters: [adjustedPath]}, parentId).then(() => {
 				updateParent?.();
 				onDismiss();
 			});
@@ -115,7 +119,7 @@ const EditOpenNode: React.FC<EditNodeParams> = ({ node, parentId, updateParent, 
 				key,
 				description,
 				actionType: 'open',
-				actionParameters: [path],
+				actionParameters: [adjustedPath],
 				children: []
 			};
 			window.commandAPI.create(newNode, parentId).then(() => {
@@ -126,7 +130,8 @@ const EditOpenNode: React.FC<EditNodeParams> = ({ node, parentId, updateParent, 
 	};
 
 	return (
-		<VStack align={'stretch'}>
+		<VStack align='stretch'>
+			<Text>Open</Text>
 			<HStack mt={2} gap={2}>
 				<Input
 					size="sm"
@@ -149,7 +154,6 @@ const EditOpenNode: React.FC<EditNodeParams> = ({ node, parentId, updateParent, 
 				<Button size="sm" onClick={onDismiss}>Cancel</Button>
 			</HStack>
 			<HStack mt={2} gap={2}>
-				<Button>Select App</Button>
 				<Input
 					size="sm"
 					placeholder="Path"
@@ -190,22 +194,24 @@ const EditBackNode: React.FC<EditNodeParams> = ({ node, parentId, updateParent, 
 	};
 
 	return (
-		<HStack mt={2} gap={2}>
-			<Input
-				size="sm"
-				placeholder="Key"
-				value={key}
-				maxLength={1}
-				onChange={e => setKey(e.target.value)}
-				width="15px"
-			/>
+		<VStack align='stretch'>
 			<Text>Back</Text>
-			<Box flexGrow={1}></Box>
-			<Button size="sm" colorScheme="blue" onClick={handleSave} disabled={!key.trim()}>
-				Save
-			</Button>
-			<Button size="sm" onClick={onDismiss}>Cancel</Button>
-		</HStack>
+			<HStack mt={2} gap={2}>
+				<Input
+					size="sm"
+					placeholder="Key"
+					value={key}
+					maxLength={1}
+					onChange={e => setKey(e.target.value)}
+					width="15px"
+				/>
+				<Box flexGrow={1}></Box>
+				<Button size="sm" colorScheme="blue" onClick={handleSave} disabled={!key.trim()}>
+					Save
+				</Button>
+				<Button size="sm" onClick={onDismiss}>Cancel</Button>
+			</HStack>
+		</VStack>
 	);
 }
 
@@ -250,7 +256,6 @@ const TreeNode: React.FC<NodeParams> = ({ node, parentId, updateParent }) => {
 		}
 		return (
 			<HStack mt={2} gap={2}>
-				<Box w='15px' />
 				<Badge variant={badgeVariant('expand')} onClick={() => setAddFormOpen('expand')}>Expand</Badge>
 				<Badge variant={badgeVariant('open')} onClick={() => setAddFormOpen('open')}>Open</Badge>
 				<Badge variant={badgeVariant('back')} onClick={() => setAddFormOpen('back')}>Back</Badge>
@@ -315,7 +320,7 @@ const TreeNode: React.FC<NodeParams> = ({ node, parentId, updateParent }) => {
 
 	return (
 		<VStack w='100%' align='stretch'>
-			<HStack gap={2}>
+			<HStack gap={2} alignItems="center">
 				<LeadingIcon />
 				<Kbd>{node.key}</Kbd>
 				<Text fontSize="sm">{node.description}</Text>
@@ -345,7 +350,7 @@ const TreeNode: React.FC<NodeParams> = ({ node, parentId, updateParent }) => {
 						onClick={e => {
 							e.stopPropagation();
 							setAddFormSelection('edit');
-							setAddFormOpen('expand');
+							setAddFormOpen(node.actionType);
 						}}
 					>
 						<MdEdit />
@@ -365,7 +370,7 @@ const TreeNode: React.FC<NodeParams> = ({ node, parentId, updateParent }) => {
 				</Show>
 			</HStack>
 			<Show when={addFormSelection}>
-				<Card.Root>
+				<Card.Root size="sm">
 					<Card.Body>
 						<Show when={addFormSelection === 'create'}>
 							<NodeSelectionView />
