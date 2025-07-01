@@ -2,6 +2,8 @@ import {CommandNodeStore} from "./database/database-accessor";
 import {CommandNode} from "../shared/command-node";
 import {PrefStore} from "./pref-store/pref-store";
 import {StartPosition} from "../shared/prefs";
+import {sendUpdateMainList} from "./event-sender";
+import {mainWindow} from "./main";
 
 export const nodeMap = new Map<string, CommandNode>();
 export const mainModel: MainModel = {
@@ -38,4 +40,10 @@ interface MainModel {
 export interface PreferencesList {
 	startup: boolean;
 	startPosition: StartPosition;
+}
+
+export function dismissWindow() {
+	mainModel.selectedRootId = 'root';
+	sendUpdateMainList(selectedCommandList());
+	mainWindow?.hide();
 }

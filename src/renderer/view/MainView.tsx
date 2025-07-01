@@ -1,38 +1,65 @@
 import React, {useEffect, useRef} from 'react';
-import {Box, For, Show, Text, VStack} from "@chakra-ui/react";
 import {mainViewModel} from "../viewmodel/mainViewModel";
 import {useSnapshot} from "valtio/react";
 
 const MainView: React.FC = () => {
     const viewModel = useSnapshot(mainViewModel);
     const ref = useRef<HTMLDivElement>(null);
+    const padding = 15; // Padding for the main view
 
     useEffect(() => {
         if (ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            window.electronAPI.resizeMainWindow(rect.width, rect.height);
+            if (ref.current) {
+                const rect = ref.current.getBoundingClientRect();
+                const width = Math.max(rect.width + padding * 2, 400); // Ensure minimum width
+                const height = rect.height + padding * 2; // Ensure minimum height
+                window.electronAPI.resizeMainWindow(width, height);
+                console.log("Main window resized to:", width, "x", height);
+            }
         }
     }, [viewModel.items.length]);
 
     return (
-        <Box
-            ref={ref}
-            backgroundColor="rgba(0,0,0,0.5)" // Half-transparent black
-            position="fixed"
-            inset={0}
+        <div
+            style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.75)",
+                color: "white",
+                padding: `${padding}px`,
+                boxSizing: "border-box",
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "flex-start",
+            }}
         >
-            <VStack align="start" p={4}>
-                <For each={viewModel.items}>
-                    { (item) => (
-                      <Text key={item.id}>[{item.key}] {item.description}</Text>
-                    )}
-                </For>
-                <Show when={viewModel.items.length === 0}>
-                    <Text>Empty</Text>
-                    <Text key="empty">[Ctrl + ,] Go to preferences to add commands</Text>
-                </Show>
-            </VStack>
-        </Box>
+            <div
+                ref={ref}
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                    width: "fit-content",
+                    height: "fit-content",
+                    minWidth: 0,
+                    minHeight: 0,
+                }}
+            >
+                {viewModel.items.length > 0 ? (
+                    viewModel.items.map(item => (
+                        <div key={item.id} style={{ width: "100%" }}>
+                            [{item.key}] {item.description}
+                        </div>
+                    ))
+                ) : (
+                    <>
+                        <div>Empty</div>
+                        <div>[Ctrl + ,] Go to preferences to add commands</div>
+                    </>
+                )}
+            </div>
+        </div>
     );
 };
 

@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, screen, globalShortcut } from 'electron';
 import path from "path";
 import { fileURLToPath } from "url";
 import {eventsRegister} from "./events-handlers";
-import {modelInit, selectedCommandList} from "./model";
+import {dismissWindow, modelInit, preferencesList, selectedCommandList} from "./model";
 import {commandsRegister, preferencesRegister} from './commands-handlers';
 import {sendUpdateMainList} from "./event-sender";
 
@@ -13,6 +13,7 @@ export const __distname = path.join(__dirname, '../../dist');
 export let mainWindow: BrowserWindow | null;
 
 app.whenReady().then(() => {
+    modelInit();
     mainWindow = new BrowserWindow({
         width: 400, // Initial width
         height: 400, // Initial height
@@ -33,7 +34,6 @@ app.whenReady().then(() => {
         },
     });
 
-    modelInit();
     mainWindow.loadFile(path.join(__distname, './index.html')).then(() => {
         adjustWindowSize();
         sendUpdateMainList(selectedCommandList());
@@ -44,12 +44,22 @@ app.whenReady().then(() => {
     screen.on('display-added', () => adjustWindowSize());
     screen.on('display-removed', () => adjustWindowSize());
     mainWindow.on('resize', () => adjustWindowSize());
+    mainWindow.on('blur', () => {
+        if (mainWindow?.isVisible()) {
+            dismissWindow();
+        }
+    });
+    app.setLoginItemSettings({
+        openAtLogin: preferencesList.startup,
+        openAsHidden: true, // Start hidden
+    })
 
     globalShortcut.register('Control+Shift+Space', () => {
         if (mainWindow?.isVisible()) {
-            mainWindow?.hide();
+            dismissWindow();
         } else {
             showWindow();
+            adjustWindowSize();
         }
     });
 
@@ -78,13 +88,26 @@ app.on('activate', () => {
     }
 });
 
-function adjustWindowSize() {
+export function adjustWindowSize() {
     if (mainWindow) {
         const { width, height } = screen.getPrimaryDisplay().workAreaSize;
         const contentSize = mainWindow.getContentSize();
-        const newWidth = Math.min(contentSize[0], width);
-        const newHeight = Math.min(contentSize[1], height);
-        mainWindow.setSize(newWidth, newHeight);
+        const winWidth = Math.min(contentSize[0], width);
+        const winHeight = Math.min(contentSize[1], height);
+        mainWindow.setSize(winWidth, winHeight);
+        switch (preferencesList.startPosition) {
+            case 'leftTop':
+                mainWindow.setPosition(50, 50);
+                break;
+            case 'center':
+                mainWindow.setPosition(width / 2 - winWidth / 2, height / 2 - winHeight / 2);
+                break;
+            case 'bottom':
+                mainWindow.setPosition(width / 2 - winWidth / 2, height - winHeight - 50);
+                break;
+            default:
+                mainWindow.setPosition(50, 50); // Fallback position
+        }
     }
 }
 

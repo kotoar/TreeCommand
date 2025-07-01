@@ -1,7 +1,7 @@
 import {app, BrowserWindow} from "electron";
 import path from "path";
 import { spawn } from "child_process";
-import {__distname, mainWindow} from "./main";
+import {__distname, adjustWindowSize, mainWindow} from "./main";
 
 export type MessageConsumer = {
   channel: string;
@@ -25,10 +25,7 @@ export const eventsRegister: MessageConsumer[] = [
   {
     channel: 'hide-window',
     handler: (event) => {
-      const focusedWindow = BrowserWindow.getFocusedWindow();
-      if (focusedWindow) {
-        focusedWindow.hide();
-      }
+      mainWindow?.hide();
     }
   },
   {
@@ -46,6 +43,7 @@ export const eventsRegister: MessageConsumer[] = [
     channel: 'resize-main-window',
     handler: (event, width: number, height: number) => {
       mainWindow?.setSize(Math.round(width), Math.round(height), true);
+      adjustWindowSize();
     }
   },
   {
@@ -61,6 +59,7 @@ function actionHandler(action: string, parameters: string[]): void {
     const filePath = parameters[0];
     if (filePath) {
       spawn('explorer', [filePath], { detached: true });
+      mainWindow?.hide();
     }
   }
 }

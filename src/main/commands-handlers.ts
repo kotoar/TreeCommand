@@ -6,6 +6,7 @@ import {mainModel, nodeMap, preferencesList, selectedCommandList} from "./model"
 import {sendUpdateMainList} from "./event-sender";
 import {PrefStore} from "./pref-store/pref-store";
 import {StartPosition} from "../shared/prefs";
+import {app} from "electron";
 
 interface AsyncMessageConsumer {
   channel: string;
@@ -105,6 +106,10 @@ export const preferencesRegister: MessageConsumer[] = [
       if(preferencesList.startup !== enabled) {
         preferencesList.startup = enabled;
         PrefStore.instance.save(preferencesList);
+        app.setLoginItemSettings({
+          openAtLogin: preferencesList.startup,
+          openAsHidden: true, // Start hidden
+        })
       }
     }
   },

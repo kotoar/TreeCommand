@@ -8,8 +8,6 @@ import {Provider} from "../components/ui/provider";
 import {mainViewModel} from "./viewmodel/mainViewModel";
 import {addEventListeners} from "./model/event-listener";
 import {snapshot} from "valtio/vanilla";
-import {CommandNode} from "../shared/command-node";
-import {useSnapshot} from "valtio/react";
 
 const rootElement = document.getElementById('root');
 
@@ -18,7 +16,7 @@ if(rootElement) {
     root.render(
         <HashRouter>
             <Routes>
-                <Route path="/" element={<Provider><MainView /></Provider>} />
+                <Route path="/" element={<MainView />} />
                 <Route path="/preferences" element={<Provider><PreferencesView /></Provider>} />
             </Routes>
         </HashRouter>,
