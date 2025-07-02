@@ -15,7 +15,7 @@ export const PreferencesView: React.FC = () => {
     const bgColor = useColorModeValue("gray.50", "gray.800");
 
     return (
-      <HStack p={6} bg={bgColor} minW='100vw' minH='100vh' align="start">
+      <HStack p={15} gap='25px' bg={bgColor} minW='100vw' minH='100vh' align="stretch">
         <VStack gap={4} mb={6} align="stretch">
           <Button
             variant={viewModel.tab === 'preferences' ? "solid" : "outline"}
@@ -28,6 +28,14 @@ export const PreferencesView: React.FC = () => {
             onClick={() => preferencesViewModel.tab = 'commands'}
           >
             Commands
+          </Button>
+          <Box flexGrow={1}></Box>
+          <Button
+            variant={"surface"}
+            colorPalette="red"
+            onClick={() => window.electronAPI.quitApp()}
+          >
+            Quit
           </Button>
         </VStack>
         <Box overflow='auto' minH='100vh' w='100%' alignSelf='stretch'>

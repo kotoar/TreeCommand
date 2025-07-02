@@ -1,16 +1,19 @@
 import { app, BrowserWindow, ipcMain, screen, globalShortcut } from 'electron';
 import path from "path";
 import { fileURLToPath } from "url";
-import {eventsRegister} from "./events-handlers";
+import {eventsRegister, openPreferenceWindow} from "./events-handlers";
 import {dismissWindow, modelInit, preferencesList, selectedCommandList} from "./model";
 import {commandsRegister, preferencesRegister} from './commands-handlers';
 import {sendUpdateMainList} from "./event-sender";
+import {traySetup} from "./tray";
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 export const __distname = path.join(__dirname, '../../dist');
 
 export let mainWindow: BrowserWindow | null;
+export const showDevTools = false;
+
 
 app.whenReady().then(() => {
     modelInit();
@@ -37,8 +40,15 @@ app.whenReady().then(() => {
     mainWindow.loadFile(path.join(__distname, './index.html')).then(() => {
         adjustWindowSize();
         sendUpdateMainList(selectedCommandList());
+        // Only open preferences if not launched at login
+        if (!app.getLoginItemSettings().wasOpenedAtLogin) {
+            openPreferenceWindow();
+        }
+        traySetup();
     });
-    mainWindow.webContents.openDevTools({ mode: "detach" });
+    if (showDevTools) {
+        mainWindow.webContents.openDevTools({ mode: "detach" });
+    }
 
     screen.on('display-metrics-changed', () => adjustWindowSize());
     screen.on('display-added', () => adjustWindowSize());
@@ -51,7 +61,8 @@ app.whenReady().then(() => {
     });
     app.setLoginItemSettings({
         openAtLogin: preferencesList.startup,
-        openAsHidden: true, // Start hidden
+        path: process.execPath, // For packaged app, this is your app's exe
+        args: []
     })
 
     globalShortcut.register('Control+Shift+Space', () => {

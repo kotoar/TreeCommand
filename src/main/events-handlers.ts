@@ -1,7 +1,7 @@
 import {app, BrowserWindow} from "electron";
 import path from "path";
 import { spawn } from "child_process";
-import {__distname, adjustWindowSize, mainWindow} from "./main";
+import {__distname, adjustWindowSize, mainWindow, showDevTools} from "./main";
 
 export type MessageConsumer = {
   channel: string;
@@ -66,7 +66,7 @@ function actionHandler(action: string, parameters: string[]): void {
 
 let preferencesWindow: BrowserWindow | null;
 
-function openPreferenceWindow(): void {
+export function openPreferenceWindow(): void {
   if (preferencesWindow) {
     preferencesWindow.focus();
     return;
@@ -78,7 +78,7 @@ function openPreferenceWindow(): void {
     title: "Preferences",
     resizable: true,
     autoHideMenuBar: true,
-    icon: path.join(__dirname, '../../build/icon-win.ico'),
+    icon: path.join(__distname, 'static/icon-win.ico'),
     webPreferences: {
       preload: path.join(__distname, './preload.js'),
       nodeIntegration: false,
@@ -87,7 +87,9 @@ function openPreferenceWindow(): void {
   });
 
   preferencesWindow.loadFile(path.join(__distname, './index.html'), {hash: "#/preferences" }).then(() => {});
-  preferencesWindow.webContents.openDevTools({ mode: "detach" });
+  if (showDevTools) {
+    preferencesWindow.webContents.openDevTools({ mode: "detach" });
+  }
 
   preferencesWindow.on('closed', () => {
     preferencesWindow = null;

@@ -1,6 +1,6 @@
 {
   "name": "command-tree",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Command Tree - a tree-style quick launchpad",
   "author": "kotoar",
   "type": "module",
@@ -30,7 +30,7 @@
         "nsis",
         "portable"
       ],
-      "icon": "build/icon-win.ico"
+      "icon": "src/static/icon-win.ico"
     }
   },
   "dependencies": {

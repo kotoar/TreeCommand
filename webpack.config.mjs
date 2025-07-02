@@ -35,6 +35,11 @@ export default [
                         from: path.resolve(__dirname, 'src/main/database/database.sql'),
                         to: path.resolve(__dirname, 'dist/static/schema.sql'),
                         noErrorOnMissing: true,
+                    },
+                    {
+                        from: path.resolve(__dirname, 'src/static'),
+                        to: path.resolve(__dirname, 'dist/static'),
+                        noErrorOnMissing: false,
                     }
                 ],
             }),
