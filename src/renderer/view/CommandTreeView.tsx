@@ -7,6 +7,7 @@ import {MdArrowDropDown, MdBackspace, MdDelete, MdOpenWith} from "react-icons/md
 import { MdArrowRight } from "react-icons/md";
 import { MdAdd } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
+import {presentText} from "../viewmodel/mainViewModel";
 
 export const CommandTreeView: React.FC = () => {
 	const [root, setRoot] = useState<CommandNode | undefined>(undefined);
@@ -203,7 +204,7 @@ const EditBackNode: React.FC<EditNodeParams> = ({ node, parentId, updateParent, 
 					value={key}
 					maxLength={1}
 					onChange={e => setKey(e.target.value)}
-					width="15px"
+					width="25px"
 				/>
 				<Box flexGrow={1}></Box>
 				<Button size="sm" colorScheme="blue" onClick={handleSave} disabled={!key.trim()}>
@@ -323,7 +324,7 @@ const TreeNode: React.FC<NodeParams> = ({ node, parentId, updateParent }) => {
 			<HStack gap={2} alignItems="center">
 				<LeadingIcon />
 				<Kbd>{node.key}</Kbd>
-				<Text fontSize="sm">{node.description}</Text>
+				<Text fontSize="sm">{presentText(node)}</Text>
 				<Box flexGrow={1}></Box>
 				<Show when={node.actionType === 'expand'}>
 					<IconButton

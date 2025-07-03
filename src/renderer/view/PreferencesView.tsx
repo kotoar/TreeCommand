@@ -1,5 +1,5 @@
 import React from "react";
-import {Text, VStack, HStack, Box, Button, Show, Switch, For} from "@chakra-ui/react";
+import {Text, VStack, HStack, Box, Button, Show, Switch, For, Kbd, Spacer} from "@chakra-ui/react";
 import {useSnapshot} from "valtio/react";
 import {useColorModeValue} from "../../components/ui/color-mode";
 import {
@@ -38,7 +38,13 @@ export const PreferencesView: React.FC = () => {
             Quit
           </Button>
         </VStack>
-        <Box overflow='auto' minH='100vh' w='100%' alignSelf='stretch'>
+        <Box
+          overflowY='auto'
+          h='100vh'
+          w='100%'
+          alignSelf='stretch'
+          paddingY='25px'
+        >
           <VStack flexGrow={1} alignItems='flex-start'>
             <Show when={viewModel.tab === 'preferences'}>
               <PreferencesListView />
@@ -55,8 +61,15 @@ export const PreferencesView: React.FC = () => {
 const PreferencesListView: React.FC = () => {
   const viewModel = useSnapshot(preferencesViewModel);
   return (
-    <VStack align="start" gap={4}>
+    <VStack align="start" gap='15px'>
       <Text fontSize="xl" fontWeight="bold">Preferences</Text>
+      <HStack gap={2} align='baseline'>
+        <Text fontWeight='bold' fontSize='sm'>Launch</Text>
+        <Spacer width='10px' />
+        <Kbd>Ctrl</Kbd>
+        <Kbd>Shift</Kbd>
+        <Kbd>Space</Kbd>
+      </HStack>
       <Switch.Root
         name="startup"
         checked={viewModel.startup}
@@ -65,14 +78,16 @@ const PreferencesListView: React.FC = () => {
         }}
       >
         <Switch.HiddenInput />
+        <Switch.Label>
+          <Text fontWeight='bold' fontSize='sm'>Start when system starts</Text>
+        </Switch.Label>
         <Switch.Control>
           <Switch.Thumb />
         </Switch.Control>
-        <Switch.Label>
-          Start when system starts
-        </Switch.Label>
       </Switch.Root>
       <HStack gap={2}>
+        <Text fontWeight='bold' fontSize='sm'>Position</Text>
+        <Spacer width='10px' />
         <For each={startPositionOptions}>
           { (option: StartPositionOption) => (
             <Button

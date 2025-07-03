@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
-import {mainViewModel} from "../viewmodel/mainViewModel";
+import {mainViewModel, presentText} from "../viewmodel/mainViewModel";
 import {useSnapshot} from "valtio/react";
+import {CommandNode} from "../../shared/command-node";
 
 const MainView: React.FC = () => {
     const viewModel = useSnapshot(mainViewModel);
@@ -49,7 +50,7 @@ const MainView: React.FC = () => {
                 {viewModel.items.length > 0 ? (
                     viewModel.items.map(item => (
                         <div key={item.id} style={{ width: "100%" }}>
-                            [{item.key}] {item.description}
+                            [{item.key}] {presentText(item)}
                         </div>
                     ))
                 ) : (

@@ -1,6 +1,6 @@
 {
   "name": "command-tree",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Command Tree - a tree-style quick launchpad",
   "author": "kotoar",
   "type": "module",
@@ -18,7 +18,7 @@
       "package.json"
     ],
     "extraResources": [
-      "build/**"
+      "src/static/**"
     ],
     "appId": "com.kotoar.commandtree",
     "productName": "Command Tree",

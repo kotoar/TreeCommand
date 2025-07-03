@@ -1,5 +1,5 @@
 import {proxy} from "valtio/vanilla";
-import {CommandNode} from "../../shared/command-node";
+import {ActionType, CommandNode} from "../../shared/command-node";
 
 export interface MainViewModel {
   items: CommandNode[];
@@ -14,3 +14,16 @@ export const mainViewModel = proxy<MainViewModel>({
     window.commandAPI.select(id).then(() => {});
   }
 });
+
+export function presentText(node: {actionType: ActionType, description: string}): string {
+  switch (node.actionType) {
+    case 'open':
+      return node.description;
+    case 'back':
+      return `Back`;
+    case 'expand':
+      return node.description;
+    default:
+      return node.description;
+  }
+}
